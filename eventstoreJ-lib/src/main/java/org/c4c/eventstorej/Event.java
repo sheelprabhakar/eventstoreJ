@@ -50,8 +50,8 @@ public class Event<T> implements Serializable {
         this.hasBeenPublished = hasBeenPublished;
     }
 
-    public String getEventString(){
-
+    public String getEventString() throws Throwable {
+        return Utils.objectToString(this.event);
     }
 
 }
