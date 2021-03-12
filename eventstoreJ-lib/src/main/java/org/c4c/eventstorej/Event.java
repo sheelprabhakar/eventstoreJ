@@ -6,7 +6,7 @@ import java.math.BigInteger;
 public class Event<T> implements Serializable {
     private BigInteger position;
     private String aggregateId;
-    private Integer revision;
+    private Integer revision = -1;
     private T event;
     private boolean hasBeenPublished;
 
