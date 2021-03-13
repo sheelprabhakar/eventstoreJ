@@ -2,17 +2,14 @@ package org.c4c.eventstorej.impl;
 
 import org.c4c.eventstorej.Event;
 import org.c4c.eventstorej.EventStoreJException;
-import org.c4c.eventstorej.StoreType;
 import org.c4c.eventstorej.Utils;
 import org.c4c.eventstorej.api.DbInitializer;
 import org.c4c.eventstorej.api.EventStore;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.UUID;
 
 public class EventStoreJImpl implements EventStore {
     private final Connection connection;
@@ -36,11 +33,12 @@ public class EventStoreJImpl implements EventStore {
         }
     }
 
-    public void saveEvent(Event event) throws Throwable {
+    @Override
+    public boolean saveEvent(Event event) throws Throwable {
         PreparedStatement stmt = this.connection.prepareStatement("INSERT INTO "+ eventsTableName+
                 " (aggregateId, revision, event, hasBeenPublished) values(?, ?, ? , ?)");
         prepareStatement(event, stmt);
-
+        return stmt.execute();
     }
 
     private void prepareStatement(Event event, PreparedStatement stmt) throws Throwable {

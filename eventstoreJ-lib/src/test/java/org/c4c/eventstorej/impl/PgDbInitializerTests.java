@@ -31,6 +31,7 @@ public class PgDbInitializerTests extends EmbeddedPG {
 
     }
 
+
     @Test()
     public void test_init_namespace_null() throws Throwable{
         NullPointerException thrown = assertThrows(

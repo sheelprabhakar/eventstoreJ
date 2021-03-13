@@ -16,7 +16,7 @@ class PgDbInitializerImpl implements DbInitializer {
     private String namespace = "default";
     public PgDbInitializerImpl(final Connection connection, String namespace) {
         this.connection = connection;
-        this.namespace = namespace+"_events";
+        this.namespace = namespace;
     }
 
     @Override
