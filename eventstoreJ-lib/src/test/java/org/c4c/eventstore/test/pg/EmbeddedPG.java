@@ -6,14 +6,9 @@ import org.junit.jupiter.api.BeforeAll;
 
 import java.io.IOException;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 
-import static org.apache.commons.lang3.SystemUtils.IS_OS_WINDOWS;
-
 public abstract class EmbeddedPG {
-
-
     // connecting to a running Postgres and feeding up the database
     public static Connection conn;
 
@@ -28,5 +23,4 @@ public abstract class EmbeddedPG {
         // close db connection
         conn.close();
     }
-
 }

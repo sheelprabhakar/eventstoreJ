@@ -20,7 +20,7 @@ class PgDbInitializerImpl implements DbInitializer {
     }
 
     @Override
-    public void initialize() throws IOException, SQLException {
+    public void initialize() throws Throwable {
         try(InputStream is = getClass().getClassLoader().getResourceAsStream("pg.sql")){
             InputStreamReader streamReader = new InputStreamReader(is, StandardCharsets.UTF_8);
             BufferedReader reader = new BufferedReader(streamReader);
@@ -33,6 +33,8 @@ class PgDbInitializerImpl implements DbInitializer {
                 Statement st = this.connection.createStatement();
                 st.execute(script);
                 st.close();
+            } else{
+                throw new NullPointerException("Connection can not be null");
             }
         } catch (IOException | SQLException e) {
             throw e;

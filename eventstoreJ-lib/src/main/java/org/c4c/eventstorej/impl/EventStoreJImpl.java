@@ -28,7 +28,7 @@ public class EventStoreJImpl implements EventStore {
     }
 
     @Override
-    public void init() throws EventStoreJException {
+    public void init() throws Throwable {
         try {
             this.dbInitializer.initialize();
         } catch (IOException | SQLException e) {
