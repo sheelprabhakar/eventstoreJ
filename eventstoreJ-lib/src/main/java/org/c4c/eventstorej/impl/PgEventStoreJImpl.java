@@ -88,16 +88,19 @@ public class PgEventStoreJImpl extends BaseEventStoreJImpl {
     }
 
     @Override
-    public <T> List<Event<T>> getEventList(String uuid, final Class<T> classType) throws Throwable {
-        return getEventList(UUID.fromString(uuid), classType);
+    public <T> List<Event<T>> getEventList(String aggregateId, final Class<T> classType) throws Throwable {
+        if (!Utils.isValidUUID(aggregateId)) {
+            throw new IllegalArgumentException("Event has invalid aggregateId.");
+        }
+        return getEventList(UUID.fromString(aggregateId), classType);
     }
 
     @Override
-    public <T> List<Event<T>> getEventList(UUID uuid, final Class<T> classType) throws Throwable {
+    public <T> List<Event<T>> getEventList(UUID aggregateId, final Class<T> classType) throws Throwable {
         PreparedStatement stmt = this.connection.prepareStatement(
                 "SELECT position, aggregateId, revision, event, published FROM " + eventsTableName +
                         " WHERE  aggregateId = ? ORDER BY revision DESC");
-        stmt.setObject(1, uuid);
+        stmt.setObject(1, aggregateId);
         ResultSet resultSet = stmt.executeQuery();
         return getEventListFromResultSet(resultSet, classType);
 
@@ -122,12 +125,15 @@ public class PgEventStoreJImpl extends BaseEventStoreJImpl {
     }
 
     @Override
-    public <T> List<Event<T>> getEventList(String uuid, int fromRevision, int toRevision, final Class<T> classType) throws Throwable {
-        return getEventList(UUID.fromString(uuid), fromRevision, toRevision, classType);
+    public <T> List<Event<T>> getEventList(String aggregateId, int fromRevision, int toRevision, final Class<T> classType) throws Throwable {
+        if (!Utils.isValidUUID(aggregateId)) {
+            throw new IllegalArgumentException("Event has invalid aggregateId.");
+        }
+        return getEventList(UUID.fromString(aggregateId), fromRevision, toRevision, classType);
     }
 
     @Override
-    public <T> List<Event<T>> getEventList(UUID uuid, int fromRevision, int toRevision, final Class<T> classType) throws Throwable {
+    public <T> List<Event<T>> getEventList(UUID aggregateId, int fromRevision, int toRevision, final Class<T> classType) throws Throwable {
         //Validate
         if (fromRevision > toRevision) {
             throw new IllegalArgumentException("FromRevision can not be greater than toRevision.");
@@ -135,7 +141,7 @@ public class PgEventStoreJImpl extends BaseEventStoreJImpl {
         PreparedStatement stmt = this.connection.prepareStatement(
                 "SELECT position, aggregateId, revision, event, published FROM " + eventsTableName +
                         " WHERE  aggregateId = ? AND revision BETWEEN ? and ? ORDER BY revision DESC");
-        stmt.setObject(1, uuid);
+        stmt.setObject(1, aggregateId);
         stmt.setInt(2, fromRevision);
         stmt.setInt(3, toRevision);
         ResultSet resultSet = stmt.executeQuery();
@@ -143,17 +149,20 @@ public class PgEventStoreJImpl extends BaseEventStoreJImpl {
     }
 
     @Override
-    public <T> Event<T> getLastEvent(String uuid, final Class<T> classType) throws Throwable {
-        return getLastEvent(UUID.fromString(uuid), classType);
+    public <T> Event<T> getLastEvent(String aggregateId, final Class<T> classType) throws Throwable {
+        if (!Utils.isValidUUID(aggregateId)) {
+            throw new IllegalArgumentException("Event has invalid aggregateId.");
+        }
+        return getLastEvent(UUID.fromString(aggregateId), classType);
     }
 
     @Override
-    public <T> Event<T> getLastEvent(UUID uuid, final Class<T> classType) throws Throwable {
+    public <T> Event<T> getLastEvent(UUID aggregateId, final Class<T> classType) throws Throwable {
         PreparedStatement stmt = this.connection.prepareStatement(
                 "SELECT position, aggregateId, revision, event, published FROM " + eventsTableName +
                         " WHERE aggregateId = ? AND revision =(SELECT MAX(revision) FROM " + eventsTableName+" WHERE aggregateId = ? )");
-        stmt.setObject(1, uuid);
-        stmt.setObject(2, uuid);
+        stmt.setObject(1, aggregateId);
+        stmt.setObject(2, aggregateId);
 
         ResultSet resultSet = stmt.executeQuery();
         if(resultSet.next()) {
@@ -174,11 +183,14 @@ public class PgEventStoreJImpl extends BaseEventStoreJImpl {
     }
 
     @Override
-    public int updateToPublished(String uuid, int fromRevision, int toRevision) throws Throwable {
-        return updateToPublished(UUID.fromString(uuid), fromRevision, toRevision);
+    public int updateToPublished(String aggregateId, int fromRevision, int toRevision) throws Throwable {
+        if (!Utils.isValidUUID(aggregateId)) {
+            throw new IllegalArgumentException("Event has invalid aggregateId.");
+        }
+        return updateToPublished(UUID.fromString(aggregateId), fromRevision, toRevision);
     }
     @Override
-    public int updateToPublished(UUID uuid, int fromRevision, int toRevision) throws Throwable {
+    public int updateToPublished(UUID aggregateId, int fromRevision, int toRevision) throws Throwable {
         //Validate
         if (fromRevision > toRevision) {
             throw new IllegalArgumentException("FromRevision can not be greater than toRevision.");
@@ -186,9 +198,60 @@ public class PgEventStoreJImpl extends BaseEventStoreJImpl {
         PreparedStatement stmt = this.connection.prepareStatement(
                 "UPDATE  " + eventsTableName +
                         " SET published = true WHERE  aggregateId = ? AND revision BETWEEN ? and ? ");
-        stmt.setObject(1, uuid);
+        stmt.setObject(1, aggregateId);
         stmt.setInt(2, fromRevision);
         stmt.setInt(3, toRevision);
         return stmt.executeUpdate();
+    }
+
+    @Override
+    public int saveSnapShot(String aggregateId, int revision, Object state) throws Throwable{
+        if (!Utils.isValidUUID(aggregateId)) {
+            throw new IllegalArgumentException("Event has invalid aggregateId.");
+        }
+        return saveSnapShot(UUID.fromString(aggregateId), revision, state);
+    }
+
+    @Override
+    public int saveSnapShot(UUID aggregateId, int revision, Object state) throws Throwable{
+        PreparedStatement stmt = this.getPreparedSnapShotInsertStatement();
+        stmt.setObject(1, aggregateId);
+        stmt.setInt(2, revision);
+        stmt.setString(3,   Utils.convertObjectToJsonString(state));
+
+        return stmt.executeUpdate();
+    }
+
+    private PreparedStatement getPreparedSnapShotInsertStatement() throws SQLException {
+        return this.connection.prepareStatement("INSERT INTO " + snapShotsTableName +
+                " (aggregateId, revision, state) values (?, ?, to_json(?::json))");
+    }
+
+    @Override
+    public <T> T getSnapShot(String aggregateId, final Class<T> classType) throws Throwable {
+        //Validate
+        if (!Utils.isValidUUID(aggregateId)) {
+            throw new IllegalArgumentException("Event has invalid aggregateId.");
+        }
+        return getSnapShot(UUID.fromString(aggregateId), classType);
+    }
+    @Override
+    public <T> T getSnapShot(UUID aggregateId, final Class<T> classType) throws Throwable {
+        //Validate
+        if (aggregateId == null) {
+            throw new IllegalArgumentException("Event has invalid aggregateId.");
+        }
+        PreparedStatement stmt = this.connection.prepareStatement(
+                "SELECT aggregateId, revision, state FROM " + snapShotsTableName +
+                        " WHERE aggregateId = ? AND revision =(SELECT MAX(revision) FROM " + snapShotsTableName+" WHERE aggregateId = ? )");
+        stmt.setObject(1, aggregateId);
+        stmt.setObject(2, aggregateId);
+
+        ResultSet resultSet = stmt.executeQuery();
+        if(resultSet.next()) {
+            return Utils.convertJsonStringToObject(resultSet.getString(3), classType);
+        }else{
+            return null;
+        }
     }
 }

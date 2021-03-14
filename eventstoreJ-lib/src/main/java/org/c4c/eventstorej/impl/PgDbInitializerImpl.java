@@ -13,7 +13,7 @@ import java.sql.Statement;
 
 class PgDbInitializerImpl implements DbInitializer {
     private final Connection connection;
-    private String namespace = "default";
+    private final String namespace ;
     public PgDbInitializerImpl(final Connection connection, String namespace) {
         this.connection = connection;
         this.namespace = namespace;
@@ -22,6 +22,9 @@ class PgDbInitializerImpl implements DbInitializer {
     @Override
     public void initialize() throws Throwable {
         try(InputStream is = getClass().getClassLoader().getResourceAsStream("pg.sql")){
+            if(is == null){
+                throw new NullPointerException("pg.sql file stream null");
+            }
             InputStreamReader streamReader = new InputStreamReader(is, StandardCharsets.UTF_8);
             BufferedReader reader = new BufferedReader(streamReader);
             StringBuilder sb= new StringBuilder();

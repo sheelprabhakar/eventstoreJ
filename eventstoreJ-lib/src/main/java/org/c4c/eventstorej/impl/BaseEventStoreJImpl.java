@@ -1,16 +1,12 @@
 package org.c4c.eventstorej.impl;
 
-import org.c4c.eventstorej.Event;
 import org.c4c.eventstorej.EventStoreJException;
-import org.c4c.eventstorej.StoreType;
 import org.c4c.eventstorej.api.DbInitializer;
 import org.c4c.eventstorej.api.EventStore;
 
 import java.io.IOException;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.List;
 
 public abstract class BaseEventStoreJImpl implements EventStore {
     protected final Connection connection;
