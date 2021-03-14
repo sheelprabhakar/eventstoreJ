@@ -6,7 +6,9 @@ import org.c4c.eventstorej.api.EventStore;
 
 import java.sql.Connection;
 
+
 public class EventStoreFactory {
+
     public static EventStore getStore(final Connection conn, final StoreType type, String namespace) throws EventStoreJException {
 
         switch (type){
