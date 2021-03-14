@@ -28,6 +28,8 @@ public class TestApplication implements CommandLineRunner {
                 this.eventStore.init();
             } catch (EventStoreJException e) {
                 e.printStackTrace();
+            } catch (Throwable throwable) {
+                throwable.printStackTrace();
             }
         }
     }

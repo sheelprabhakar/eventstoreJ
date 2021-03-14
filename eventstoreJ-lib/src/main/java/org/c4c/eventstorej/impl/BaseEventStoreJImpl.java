@@ -6,25 +6,27 @@ import org.c4c.eventstorej.StoreType;
 import org.c4c.eventstorej.api.DbInitializer;
 import org.c4c.eventstorej.api.EventStore;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.List;
 
-public class EventStoreJImpl implements EventStore {
-    private final Connection connection;
-    private final DbInitializer dbInitializer;
-    private final String tableName;
+public abstract class BaseEventStoreJImpl implements EventStore {
+    protected final Connection connection;
+    protected final DbInitializer dbInitializer;
+    protected final String eventsTableName;
+    protected final String snapShotsTableName;
 
-    public EventStoreJImpl(final Connection connection, final DbInitializer dbInitializer, String namespace) {
+    public BaseEventStoreJImpl(final Connection connection, final DbInitializer dbInitializer, String namespace) {
         this.connection = connection;
         this.dbInitializer = dbInitializer;
-        this.tableName = namespace;
+        this.eventsTableName = namespace + "_events";
+        this.snapShotsTableName = namespace + "_snapshots";
     }
 
     @Override
-    public void init() throws EventStoreJException {
+    public void init() throws Throwable {
         try {
             this.dbInitializer.initialize();
         } catch (IOException | SQLException e) {
@@ -32,8 +34,4 @@ public class EventStoreJImpl implements EventStore {
         }
     }
 
-    public void saveEvent(Event event) throws SQLException {
-        PreparedStatement stmt = this.connection.prepareStatement("");
-
-    }
 }

@@ -4,5 +4,5 @@ import java.io.IOException;
 import java.sql.SQLException;
 
 public interface DbInitializer {
-    void initialize() throws IOException, SQLException;
+    void initialize() throws IOException, SQLException, Throwable;
 }
