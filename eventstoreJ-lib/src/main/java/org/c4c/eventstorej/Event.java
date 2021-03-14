@@ -2,10 +2,11 @@ package org.c4c.eventstorej;
 
 import java.io.Serializable;
 import java.math.BigInteger;
+import java.util.UUID;
 
 public class Event<T> implements Serializable {
     private BigInteger position;
-    private String aggregateId;
+    private UUID aggregateId;
     private Integer revision = -1;
     private T event;
     private boolean hasBeenPublished;
@@ -18,11 +19,11 @@ public class Event<T> implements Serializable {
         this.position = position;
     }
 
-    public String getAggregateId() {
+    public UUID getAggregateId() {
         return aggregateId;
     }
 
-    public void setAggregateId(String aggregateId) {
+    public void setAggregateId(UUID aggregateId) {
         this.aggregateId = aggregateId;
     }
 

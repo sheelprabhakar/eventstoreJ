@@ -7,5 +7,5 @@ public interface EventStore {
 
     void init() throws EventStoreJException, Throwable;
 
-    boolean saveEvent(Event event) throws Throwable;
+    int saveEvent(Event event) throws Throwable;
 }

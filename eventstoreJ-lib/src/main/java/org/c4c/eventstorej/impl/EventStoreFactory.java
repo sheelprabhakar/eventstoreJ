@@ -2,7 +2,6 @@ package org.c4c.eventstorej.impl;
 
 import org.c4c.eventstorej.EventStoreJException;
 import org.c4c.eventstorej.StoreType;
-import org.c4c.eventstorej.api.DbInitializer;
 import org.c4c.eventstorej.api.EventStore;
 
 import java.sql.Connection;
@@ -12,7 +11,7 @@ public class EventStoreFactory {
 
         switch (type){
             case POSTGRES:{
-                return new EventStoreJImpl(conn, DbInitializers.getInstance( type, conn, namespace), namespace);
+                return new PgEventStoreJImpl(conn, DbInitializers.getInstance( type, conn, namespace), namespace);
             }
         }
         throw new EventStoreJException("Can not initialize store");
