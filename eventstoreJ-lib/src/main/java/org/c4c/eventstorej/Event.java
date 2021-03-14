@@ -9,7 +9,7 @@ public class Event<T> implements Serializable {
     private UUID aggregateId;
     private Integer revision = -1;
     private T event;
-    private boolean hasBeenPublished;
+    private boolean published;
 
     public BigInteger getPosition() {
         return position;
@@ -43,16 +43,16 @@ public class Event<T> implements Serializable {
         this.event = event;
     }
 
-    public boolean isHasBeenPublished() {
-        return hasBeenPublished;
+    public boolean isPublished() {
+        return published;
     }
 
-    public void setHasBeenPublished(boolean hasBeenPublished) {
-        this.hasBeenPublished = hasBeenPublished;
+    public void setPublished(boolean published) {
+        this.published = published;
     }
 
     public String getEventString() throws Throwable {
-        return Utils.objectToString(this.event);
+        return Utils.convertObjectToJsonString(this.event);
     }
 
 }

@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS ${namespace}_events (
   aggregateId uuid NOT NULL,
   revision integer NOT NULL,
   event jsonb NOT NULL,
-  hasBeenPublished boolean NOT NULL,
+  published boolean NOT NULL,
   CONSTRAINT ${namespace}_events_pk PRIMARY KEY(position),
   CONSTRAINT ${namespace}_aggregateId_revision UNIQUE (aggregateId, revision)
 );

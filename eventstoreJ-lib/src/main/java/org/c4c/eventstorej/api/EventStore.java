@@ -4,6 +4,7 @@ import org.c4c.eventstorej.Event;
 import org.c4c.eventstorej.EventStoreJException;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface EventStore {
 
@@ -11,6 +12,7 @@ public interface EventStore {
 
     int saveEvent(Event event) throws Throwable;
 
-
-    int saveEvent(List<Event> eventList) throws Throwable;
+    <T> int saveEvent(List<Event<T>> eventList) throws Throwable;
+    <T>List<Event<T>> getEventList(String uuid, final Class<T> classType) throws Throwable;
+    <T> List<Event<T>> getEventList(UUID uuid,  final Class<T> classType) throws Throwable;
 }

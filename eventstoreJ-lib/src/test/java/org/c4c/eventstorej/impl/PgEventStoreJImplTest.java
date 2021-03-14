@@ -20,9 +20,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Testable
 public class PgEventStoreJImplTest extends EmbeddedPG {
     static EventStore eventStore;
-    private final static String NAME_SPACE="event";
+    private final static String NAME_SPACE = "event";
+
     @BeforeAll
-    static void initEventStore(){
+    static void initEventStore() {
         eventStore = new PgEventStoreJImpl(conn, DbInitializers.getInstance(StoreType.POSTGRES, conn, NAME_SPACE), NAME_SPACE);
         try {
             eventStore.init();
@@ -33,7 +34,7 @@ public class PgEventStoreJImplTest extends EmbeddedPG {
 
     @Test()
     @Order(1)
-    public void init_ok(){
+    public void init_ok() {
         try {
             eventStore.init();
         } catch (Throwable throwable) {
@@ -46,7 +47,7 @@ public class PgEventStoreJImplTest extends EmbeddedPG {
     public void save_event_ok() throws Throwable {
         Event<Person> event = getPersonEvent("Sheel", 40);
 
-        Assertions.assertTrue(eventStore.saveEvent(event)==1);
+        Assertions.assertTrue(eventStore.saveEvent(event) == 1);
     }
 
     @Test
@@ -57,7 +58,7 @@ public class PgEventStoreJImplTest extends EmbeddedPG {
         Person person = new Person("Sheel", 40);
         event.setEvent(person);
         event.setRevision(1);
-        event.setHasBeenPublished(false);
+        event.setPublished(false);
 
         IllegalArgumentException thrown = assertThrows(
                 IllegalArgumentException.class,
@@ -96,19 +97,19 @@ public class PgEventStoreJImplTest extends EmbeddedPG {
     @Test
     @Order(4)
     public void save_eventList_ok() throws Throwable {
-        List<Event> eventList = new ArrayList<>();
-        for(int i =0; i < 5; ++i) {
-            Event<Person> event = getPersonEvent("Sindhu"+i, 40);
+        List<Event<Person>> eventList = new ArrayList<>();
+        for (int i = 0; i < 5; ++i) {
+            Event<Person> event = getPersonEvent("Sindhu" + i, 40);
             eventList.add(event);
         }
 
-        Assertions.assertTrue(eventStore.saveEvent(eventList)==5);
+        Assertions.assertTrue(eventStore.saveEvent(eventList) == 5);
     }
 
     @Test
     @Order(5)
     public void save_eventList_invalid_param() throws Throwable {
-       final List<Event> eventList = null;
+        final List<Event<Person>> eventList = null;
         IllegalArgumentException thrown = assertThrows(
                 IllegalArgumentException.class,
                 () -> eventStore.saveEvent(eventList),
@@ -116,13 +117,29 @@ public class PgEventStoreJImplTest extends EmbeddedPG {
         );
         assertTrue(thrown.getMessage().contains("null or empty"));
 
-        final List<Event> eventList1 = new ArrayList<>();
-         thrown = assertThrows(
+        final List<Event<Person>> eventList1 = new ArrayList<>();
+        thrown = assertThrows(
                 IllegalArgumentException.class,
                 () -> eventStore.saveEvent(eventList1),
                 "Expected saveEvent() to throw, but it didn't"
         );
         assertTrue(thrown.getMessage().contains("null or empty"));
+    }
+
+    @Test
+    @Order(6)
+    public void get_eventList_ok() throws Throwable {
+        Event<Person> event = getPersonEvent("Prabhakar", 40);
+        Assertions.assertTrue(eventStore.saveEvent(event) == 1);
+
+        assertTrue( eventStore.getEventList(event.getAggregateId(), Person.class).size() == 1);
+
+        event.setRevision(2);
+        Assertions.assertTrue(eventStore.saveEvent(event) == 1);
+        List<Event<Person>> eventList = eventStore.getEventList(event.getAggregateId(), Person.class);
+        assertTrue( eventList.size() == 2);
+        //test order by clause
+        assertTrue(eventList.get(0).getRevision() == 2);
     }
 
     private Event<Person> getPersonEvent(String name, int age) {
@@ -131,17 +148,18 @@ public class PgEventStoreJImplTest extends EmbeddedPG {
         Person person = new Person(name, age);
         event.setEvent(person);
         event.setRevision(1);
-        event.setHasBeenPublished(false);
+        event.setPublished(false);
         return event;
     }
 
-    static class Person{
+    static class Person {
         private String name;
         private int age;
 
-        public Person(){
+        public Person() {
 
         }
+
         public Person(String name, int age) {
             this.name = name;
             this.age = age;
