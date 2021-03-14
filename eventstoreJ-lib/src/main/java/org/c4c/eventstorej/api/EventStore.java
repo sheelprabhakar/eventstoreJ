@@ -38,4 +38,6 @@ public interface EventStore {
     <T> T getSnapShot(String aggregateId, final Class<T> classType) throws Throwable;
 
     <T> T getSnapShot(UUID aggregateId, final Class<T> classType) throws Throwable;
+
+    <T> List<Event<T>> getReplay(int fromPosition, int toPosition, final Class<T> classType) throws Throwable;
 }

@@ -29,6 +29,12 @@ public class PgEventStoreJImpl extends BaseEventStoreJImpl {
         }
     }
 
+    /**
+     * Method to save event in database
+     * @param event object, to be stored in db
+     * @return count of saved item
+     * @throws Throwable
+     */
     @Override
     public int saveEvent(Event event) throws Throwable {
         PreparedStatement stmt = getPreparedInsertStatement();
@@ -253,5 +259,20 @@ public class PgEventStoreJImpl extends BaseEventStoreJImpl {
         }else{
             return null;
         }
+    }
+
+    @Override
+    public <T> List<Event<T>> getReplay(int fromPosition, int toPosition, final Class<T> classType) throws Throwable {
+        //Validate
+        if (fromPosition > toPosition) {
+            throw new IllegalArgumentException("fromPosition can not be greater than toPosition.");
+        }
+        PreparedStatement stmt = this.connection.prepareStatement(
+                "SELECT position, aggregateId, revision, event, published  FROM " + eventsTableName +
+                        " WHERE position BETWEEN ? and ? ");
+        stmt.setInt(1, fromPosition);
+        stmt.setInt(2, toPosition);
+        ResultSet resultSet = stmt.executeQuery();
+        return getEventListFromResultSet(resultSet, classType);
     }
 }

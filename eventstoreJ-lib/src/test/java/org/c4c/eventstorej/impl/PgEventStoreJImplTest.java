@@ -349,6 +349,15 @@ public class PgEventStoreJImplTest extends EmbeddedPG {
         assertTrue(thrown.getMessage().contains("invalid"));
     }
 
+    @Test
+    @Order(20)
+    public void get_replay_ok() throws Throwable {
+        Event<Person> event = getPersonEvent("Prabhakar", 40);
+        Assertions.assertTrue(eventStore.saveEvent(event) == 1);
+        List<Event<Person>> eventList = eventStore.getReplay(0,1, Person.class);
+        assertTrue(eventList.size() > 0);
+    }
+
     private Event<Person> getPersonEvent(String name, int age) {
         Event<Person> event = new Event<>();
         event.setAggregateId(UUID.randomUUID());
