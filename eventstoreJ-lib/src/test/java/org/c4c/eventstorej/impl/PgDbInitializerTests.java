@@ -14,39 +14,39 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class PgDbInitializerTests extends EmbeddedPG {
 
     @Test
-    public void test_init_db_ok() throws Throwable{
-        DbInitializer db= DbInitializers.getInstance(StoreType.POSTGRES, this.conn, "event");
+    public void test_init_db_ok() throws Throwable {
+        DbInitializer db = DbInitializers.getInstance(StoreType.POSTGRES, conn, "event");
         Assertions.assertNotNull(db);
         db.initialize();
     }
 
     @Test()
-    public void test_init_db_null_conn() throws Throwable{
+    public void test_init_db_null_conn() {
         NullPointerException thrown = assertThrows(
                 NullPointerException.class,
                 () -> DbInitializers.getInstance(StoreType.POSTGRES, null, "event"),
                 "Expected doThing() to throw, but it didn't"
         );
         assertTrue(thrown.getMessage().contains("Connection"));
-
     }
 
 
     @Test()
-    public void test_init_namespace_null() throws Throwable{
+    public void test_init_namespace_null() {
         NullPointerException thrown = assertThrows(
                 NullPointerException.class,
-                () -> DbInitializers.getInstance(StoreType.POSTGRES, this.conn, null),
+                () -> DbInitializers.getInstance(StoreType.POSTGRES, conn, null),
                 "Expected doThing() to throw, but it didn't"
         );
         assertTrue(thrown.getMessage().contains("Namespace"));
 
     }
+
     @Test()
-    public void test_init_namespace_empty() throws Throwable{
+    public void test_init_namespace_empty() {
         NullPointerException thrown = assertThrows(
                 NullPointerException.class,
-                () -> DbInitializers.getInstance(StoreType.POSTGRES, this.conn, ""),
+                () -> DbInitializers.getInstance(StoreType.POSTGRES, conn, ""),
                 "Expected doThing() to throw, but it didn't"
         );
         assertTrue(thrown.getMessage().contains("Namespace"));

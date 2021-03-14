@@ -10,7 +10,7 @@ public class Utils {
     private final static Pattern UUID_REGEX_PATTERN =
             Pattern.compile("^[{]?[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}[}]?$");
 
-    private static ObjectMapper mapper = new ObjectMapper();
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     public static <T> T convertJsonStringToObject(final String jsonStr,
                                                   final Class<T> classType) throws IOException {
