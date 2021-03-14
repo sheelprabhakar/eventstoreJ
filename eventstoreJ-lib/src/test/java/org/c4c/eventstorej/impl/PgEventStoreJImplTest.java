@@ -10,6 +10,8 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.platform.commons.annotation.Testable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -42,12 +44,7 @@ public class PgEventStoreJImplTest extends EmbeddedPG {
     @Test
     @Order(2)
     public void save_event_ok() throws Throwable {
-        Event<Person> event = new Event<>();
-        event.setAggregateId(UUID.randomUUID());
-        Person person = new Person("Sheel", 40);
-        event.setEvent(person);
-        event.setRevision(1);
-        event.setHasBeenPublished(false);
+        Event<Person> event = getPersonEvent("Sheel", 40);
 
         Assertions.assertTrue(eventStore.saveEvent(event)==1);
     }
@@ -94,6 +91,48 @@ public class PgEventStoreJImplTest extends EmbeddedPG {
                 "Expected saveEvent() to throw, but it didn't"
         );
         assertTrue(thrown.getMessage().contains("invalid revision"));
+    }
+
+    @Test
+    @Order(4)
+    public void save_eventList_ok() throws Throwable {
+        List<Event> eventList = new ArrayList<>();
+        for(int i =0; i < 5; ++i) {
+            Event<Person> event = getPersonEvent("Sindhu"+i, 40);
+            eventList.add(event);
+        }
+
+        Assertions.assertTrue(eventStore.saveEvent(eventList)==5);
+    }
+
+    @Test
+    @Order(5)
+    public void save_eventList_invalid_param() throws Throwable {
+       final List<Event> eventList = null;
+        IllegalArgumentException thrown = assertThrows(
+                IllegalArgumentException.class,
+                () -> eventStore.saveEvent(eventList),
+                "Expected saveEvent() to throw, but it didn't"
+        );
+        assertTrue(thrown.getMessage().contains("null or empty"));
+
+        final List<Event> eventList1 = new ArrayList<>();
+         thrown = assertThrows(
+                IllegalArgumentException.class,
+                () -> eventStore.saveEvent(eventList1),
+                "Expected saveEvent() to throw, but it didn't"
+        );
+        assertTrue(thrown.getMessage().contains("null or empty"));
+    }
+
+    private Event<Person> getPersonEvent(String name, int age) {
+        Event<Person> event = new Event<>();
+        event.setAggregateId(UUID.randomUUID());
+        Person person = new Person(name, age);
+        event.setEvent(person);
+        event.setRevision(1);
+        event.setHasBeenPublished(false);
+        return event;
     }
 
     static class Person{

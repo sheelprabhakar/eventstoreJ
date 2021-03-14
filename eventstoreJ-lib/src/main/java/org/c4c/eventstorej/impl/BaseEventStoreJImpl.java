@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.List;
 
 public abstract class BaseEventStoreJImpl implements EventStore {
     protected final Connection connection;
@@ -32,4 +33,5 @@ public abstract class BaseEventStoreJImpl implements EventStore {
             throw new EventStoreJException("Can not initialize store");
         }
     }
+
 }

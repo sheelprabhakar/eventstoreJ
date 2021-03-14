@@ -2,14 +2,13 @@ package org.c4c.eventstorej.impl;
 
 import org.c4c.eventstorej.Event;
 import org.c4c.eventstorej.EventStoreJException;
-import org.c4c.eventstorej.StoreType;
 import org.c4c.eventstorej.api.DbInitializer;
-import org.c4c.eventstorej.api.EventStore;
 
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.List;
 
 public class PgEventStoreJImpl extends BaseEventStoreJImpl {
 
@@ -28,7 +27,8 @@ public class PgEventStoreJImpl extends BaseEventStoreJImpl {
 
     @Override
     public int saveEvent(Event event) throws Throwable {
-        PreparedStatement stmt = this.preparePGInsertStatement(event);
+        PreparedStatement stmt = getPreparedInsertStatement();
+        this.preparePGInsertStatement(event, stmt);
 
        if(stmt != null) {
            return stmt.executeUpdate();
@@ -37,9 +37,33 @@ public class PgEventStoreJImpl extends BaseEventStoreJImpl {
        }
     }
 
-    private PreparedStatement preparePGInsertStatement(Event event) throws Throwable {
-        PreparedStatement stmt = this.connection.prepareStatement("INSERT INTO " + eventsTableName +
+    private PreparedStatement getPreparedInsertStatement() throws SQLException {
+        return this.connection.prepareStatement("INSERT INTO " + eventsTableName +
                 " (aggregateId, revision, event, hasBeenPublished) values(?, ?, to_json(?::json) , ?)");
+    }
+
+    @Override
+    public int saveEvent(List<Event> eventList) throws Throwable {
+
+        if(eventList == null || eventList.size() < 1){
+                throw new IllegalArgumentException("Event list cannot be null or empty.");
+        }
+        PreparedStatement stmt = getPreparedInsertStatement();
+        for (Event event: eventList) {
+            this.preparePGInsertStatement(event, stmt);
+            stmt.addBatch();
+            stmt.clearParameters();
+        }
+        if(stmt != null) {
+            int[] res = stmt.executeBatch();
+            return res.length;
+        }else {
+            return -1;
+        }
+    }
+
+    private void preparePGInsertStatement(Event event, PreparedStatement stmt) throws Throwable {
+
         //Validate
         if (event.getAggregateId() == null) {
             throw new IllegalArgumentException("Event has invalid UUID.");
@@ -57,7 +81,5 @@ public class PgEventStoreJImpl extends BaseEventStoreJImpl {
         stmt.setInt(2, event.getRevision());
         stmt.setString(3, eventData);
         stmt.setBoolean(4, event.isHasBeenPublished());
-
-        return stmt;
     }
 }
