@@ -14,8 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @Testable
 public class PgEventStoreJImplTest extends EmbeddedPG {
@@ -136,10 +135,141 @@ public class PgEventStoreJImplTest extends EmbeddedPG {
 
         event.setRevision(2);
         Assertions.assertTrue(eventStore.saveEvent(event) == 1);
-        List<Event<Person>> eventList = eventStore.getEventList(event.getAggregateId(), Person.class);
+        List<Event<Person>> eventList = eventStore.getEventList(event.getAggregateId().toString(), Person.class);
         assertTrue( eventList.size() == 2);
         //test order by clause
         assertTrue(eventList.get(0).getRevision() == 2);
+    }
+
+    @Test
+    @Order(7)
+    public void get_eventList_not_found() throws Throwable {
+        assertTrue( eventStore.getEventList(UUID.randomUUID(), Person.class).size() == 0);
+
+        assertTrue( eventStore.getEventList(UUID.randomUUID().toString(), Person.class).size() == 0);
+    }
+
+    @Test
+    @Order(6)
+    public void get_eventList_from_to_revision_ok() throws Throwable {
+        Event<Person> event = getPersonEvent("Prabhakar", 40);
+        Assertions.assertTrue(eventStore.saveEvent(event) == 1);
+
+        assertTrue( eventStore.getEventList(event.getAggregateId(), Person.class).size() == 1);
+
+        event.setRevision(2);
+        Assertions.assertTrue(eventStore.saveEvent(event) == 1);
+        event.setRevision(3);
+        Assertions.assertTrue(eventStore.saveEvent(event) == 1);
+        event.setRevision(4);
+        Assertions.assertTrue(eventStore.saveEvent(event) == 1);
+        event.setRevision(5);
+        Assertions.assertTrue(eventStore.saveEvent(event) == 1);
+
+        List<Event<Person>> eventList = eventStore.getEventList(event.getAggregateId().toString(),2,3, Person.class);
+        assertTrue( eventList.size() == 2);
+        //test order by clause
+        assertTrue(eventList.get(0).getRevision() == 3);
+
+        eventList = eventStore.getEventList(event.getAggregateId().toString(),2,5, Person.class);
+        assertTrue( eventList.size() == 4);
+        //test order by clause
+        assertTrue(eventList.get(0).getRevision() == 5);
+    }
+
+    @Test
+    @Order(7)
+    public void get_eventList_from_to_revision_exception() throws Throwable {
+        Event<Person> event = getPersonEvent("Prabhakar", 40);
+        Assertions.assertTrue(eventStore.saveEvent(event) == 1);
+
+        assertTrue( eventStore.getEventList(event.getAggregateId(), Person.class).size() == 1);
+
+        event.setRevision(2);
+        Assertions.assertTrue(eventStore.saveEvent(event) == 1);
+        event.setRevision(3);
+        Assertions.assertTrue(eventStore.saveEvent(event) == 1);
+
+        IllegalArgumentException thrown = assertThrows(
+                IllegalArgumentException.class,
+                () -> eventStore.getEventList(event.getAggregateId().toString(),3,2, Person.class),
+                "Expected getEventList() to throw, but it didn't"
+        );
+        assertTrue(thrown.getMessage().contains("FromRevision"));
+    }
+
+    @Test
+    @Order(8)
+    public void get_LastEvent_ok() throws Throwable {
+        Event<Person> event = getPersonEvent("Prabhakar", 40);
+        Assertions.assertTrue(eventStore.saveEvent(event) == 1);
+
+        assertTrue(eventStore.getEventList(event.getAggregateId(), Person.class).size() == 1);
+
+        event.setRevision(2);
+        Assertions.assertTrue(eventStore.saveEvent(event) == 1);
+        event.setRevision(3);
+        Assertions.assertTrue(eventStore.saveEvent(event) == 1);
+        Event<Person> eventNew = eventStore.getLastEvent(event.getAggregateId().toString(), Person.class);
+        assertNotNull(eventNew);
+        assertEquals(3, eventNew.getRevision());
+    }
+
+    @Test
+    @Order(9)
+    public void get_LastEvent_not_found() throws Throwable {
+        Event<Person> eventNew = eventStore.getLastEvent(UUID.randomUUID(), Person.class);
+        assertNull(eventNew);
+    }
+
+    @Test
+    @Order(10)
+    public void get_eventList_from_to_revision_not_found() throws Throwable {
+        List<Event<Person>> eventList = eventStore.getEventList(UUID.randomUUID(), Person.class);
+        assertEquals(0, eventList.size());
+    }
+
+    @Test
+    @Order(11)
+    public void get_unpublished_events() throws Throwable {
+        Event<Person> event = getPersonEvent("Prabhakar", 40);
+        Assertions.assertTrue(eventStore.saveEvent(event) == 1);
+        List<Event<Person>> eventList = eventStore.getUnpublishedEventList(Person.class);
+        assertTrue(eventList.size() > 0);
+    }
+
+    @Test
+    @Order(12)
+    public void update_to_published_ok() throws Throwable {
+        Event<Person> event = getPersonEvent("Prabhakar", 40);
+        Assertions.assertTrue(eventStore.saveEvent(event) == 1);
+        event.setRevision(2);
+        Assertions.assertTrue(eventStore.saveEvent(event) == 1);
+
+        event.setRevision(3);
+        Assertions.assertTrue(eventStore.saveEvent(event) == 1);
+
+        int count = eventStore.updateToPublished(event.getAggregateId().toString(), 1,3);
+        assertTrue(count == 3);
+    }
+
+    @Test
+    @Order(13)
+    public void update_to_published_not_found() throws Throwable {
+                int count = eventStore.updateToPublished(UUID.randomUUID(), 1,3);
+        assertTrue(count == 0);
+    }
+
+
+    @Test
+    @Order(14)
+    public void update_to_published_exception() throws Throwable {
+        IllegalArgumentException thrown = assertThrows(
+                IllegalArgumentException.class,
+                () -> eventStore.getEventList(UUID.randomUUID(),3,2, Person.class),
+                "Expected getEventList() to throw, but it didn't"
+        );
+        assertTrue(thrown.getMessage().contains("FromRevision"));
     }
 
     private Event<Person> getPersonEvent(String name, int age) {
