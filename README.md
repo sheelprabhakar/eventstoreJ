@@ -3,9 +3,9 @@ Idea is to develop a simple Java lib to make RDBMS and NoSQL as event store and 
 
 ## Suported Database
 * Postgres [Basic JDBC implementation complete].
+* MySql [Basic JDBC implementation complete].
 
 ## ToDo List
-* MySQL
 * MS SQL
 * MongoDB
 * DynamoDB
