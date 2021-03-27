@@ -11,6 +11,7 @@ import java.sql.SQLException;
 public abstract class EmbeddedPG {
     // connecting to a running Postgres and feeding up the database
     public static Connection conn;
+    private static  EmbeddedPostgres pg;
 
     @BeforeAll
     public static void initiPG() throws IOException, SQLException {
@@ -21,6 +22,15 @@ public abstract class EmbeddedPG {
     @AfterAll
     public static void stopPg() throws SQLException {
         // close db connection
-        conn.close();
+        if(conn != null) {
+            conn.close();
+        }
+        if(pg != null){
+            try {
+                pg.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

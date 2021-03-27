@@ -18,6 +18,9 @@ class DbInitializers {
             case POSTGRES:{
                 return new PgDbInitializerImpl(connection, namespace);
             }
+            case MYSQL:{
+                    return new MySqlDbInitializerImpl(connection, namespace);
+                }
             default:
                 return null;
         }

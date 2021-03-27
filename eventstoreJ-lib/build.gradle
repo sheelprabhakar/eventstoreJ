@@ -20,6 +20,12 @@ dependencies {
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
 // https://mvnrepository.com/artifact/com.opentable.components/otj-pg-embedded
     testImplementation group: 'com.opentable.components', name: 'otj-pg-embedded', version: '0.13.3'
+    // https://mvnrepository.com/artifact/com.wix/wix-embedded-mysql
+    testImplementation group: 'com.wix', name: 'wix-embedded-mysql', version: '4.6.1'
+// https://mvnrepository.com/artifact/mysql/mysql-connector-java
+    implementation group: 'mysql', name: 'mysql-connector-java', version: '5.1.49'
+// https://mvnrepository.com/artifact/org.slf4j/slf4j-simple
+    testImplementation group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.30'
 
 }
 
