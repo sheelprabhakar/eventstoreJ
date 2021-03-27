@@ -13,7 +13,8 @@ import java.sql.Statement;
 
 class MySqlDbInitializerImpl implements DbInitializer {
     private final Connection connection;
-    private final String namespace ;
+    private final String namespace;
+
     public MySqlDbInitializerImpl(final Connection connection, String namespace) {
         this.connection = connection;
         this.namespace = namespace;
@@ -21,22 +22,27 @@ class MySqlDbInitializerImpl implements DbInitializer {
 
     @Override
     public void initialize() throws Throwable {
-        try(InputStream is = getClass().getClassLoader().getResourceAsStream("mysql.sql")){
-            if(is == null){
+        try (InputStream is = getClass().getClassLoader().getResourceAsStream("mysql.sql")) {
+            if (is == null) {
                 throw new NullPointerException("pg.sql file stream null");
             }
             InputStreamReader streamReader = new InputStreamReader(is, StandardCharsets.UTF_8);
             BufferedReader reader = new BufferedReader(streamReader);
-            StringBuilder sb= new StringBuilder();
-            for (String line; (line = reader.readLine()) != null;) {
-                sb.append( line.replace("${namespace}", namespace));
+            StringBuilder sb = new StringBuilder();
+            for (String line; (line = reader.readLine()) != null; ) {
+                sb.append(line.replace("${namespace}", namespace));
             }
             String script = sb.toString();
-            if(this.connection != null){
-                Statement st = this.connection.createStatement();
-                st.execute(script);
-                st.close();
-            } else{
+
+            if (this.connection != null) {
+                String[] scripts = script.split(";");
+                for (String s : scripts) {
+                    Statement st = this.connection.createStatement();
+                    st.execute(s);
+                    st.close();
+                }
+
+            } else {
                 throw new NullPointerException("Connection can not be null");
             }
         } catch (IOException | SQLException e) {
